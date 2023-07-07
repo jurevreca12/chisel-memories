@@ -29,7 +29,10 @@ object MemoryGenerator {
     
     private val memoryCounter = ThreadLocal.withInitial[Int](() => 0)
     private val genDir = new ThreadLocal[Path]
-    def setGenDir(dir: Path) = genDir.set(dir)
+    def setGenDir(dir: Path) = {
+        logger.debug(s"Setting generation directory to: ${dir.toString()}")
+        genDir.set(dir)
+    }
     def getGenDir() = genDir.get
 
     // Empty memory
@@ -45,10 +48,10 @@ object MemoryGenerator {
         val depth = os.read(os.Path(hexFile)).linesIterator.size
         val newName = s"mem${memoryCounter.get()}.hex"
         val newPath = Paths.get(getGenDir().toString(), newName).toAbsolutePath()
-        os.copy(os.Path(hexFile), os.Path(newPath))
-        logger.info(s"Generating new memory from $hexFile -> ${getGenDir()}/$newName.")
+        os.copy.over(os.Path(hexFile), os.Path(newPath))
+        logger.debug(s"Generating new memory from $hexFile -> ${getGenDir()}/$newName.")
         memoryCounter.set(memoryCounter.get + 1) 
-        new SRAM(depth, width, s"${getGenDir().getParent().relativize(getGenDir()).toString()}/$newName")
+        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$newName")
     }
 
     // Takes a hex string and saves it as a file
@@ -59,9 +62,9 @@ object MemoryGenerator {
         val depth = hexStr.count(_ == '\n') + 1
         val fName = s"mem${memoryCounter.get()}.hex"
         val fPath = Paths.get(getGenDir().toString(), fName).toAbsolutePath()
-        os.write(os.Path(fPath), hexStr)
-        logger.info(s"Generating new memory from string to file $fPath.")
+        os.write.over(os.Path(fPath), hexStr)
+        logger.debug(s"Generating new memory from string to file $fPath.")
         memoryCounter.set(memoryCounter.get + 1) 
-        new SRAM(depth, width, s"${getGenDir().getParent().relativize(getGenDir()).toString()}/$fName")
+        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$fName")
     }
 }
