@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package memories
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.{Path, Paths}
-import os._
 
 /* Generates memories that are blocked to Block RAMs in FPGA.
  * It also handles placing the files in the correct location.
