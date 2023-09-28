@@ -21,23 +21,32 @@ package memories
 import chisel3._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import chisel3.util.log2Up
+import os.write
 
-class SRAM(depth: Int, width: Int = 32, hexFile: String = "") extends Module {
+class SRAMRead(depth: Int, width: Int) extends Bundle {
+  val enable = Input(Bool())
+  val address = Input(UInt(log2Up(depth).W))
+  val data = UInt(width.W)
+}
+class SRAMWrite(depth: Int, width: Int) extends Bundle {
+  val enable = Bool()
+  val address = UInt(log2Up(depth).W)
+  val data =  UInt(width.W)
+}
+
+class SRAM(depth: Int, width: Int = 32, hexFile: String = "") extends Module {  
   val io = IO(new Bundle {
-    val rdEna  = Input(Bool())
-    val rdAddr = Input(UInt(log2Up(depth).W))
-    val rdData = Output(UInt(width.W))
-    val wrEna  = Input(Bool())
-    val wrAddr = Input(UInt(log2Up(depth).W))
-    val wrData = Input(UInt(width.W))
+    val read = new SRAMRead(depth, width)
+    val write = Flipped(new SRAMWrite(depth, width))
   })
+  
   val mem = SyncReadMem(depth, UInt(width.W))
   if (hexFile != "") {
     loadMemoryFromFileInline(mem, hexFile)
   }
   // Create one write port and one read port
-  when(io.wrEna) {
-    mem.write(io.wrAddr, io.wrData)
+  when(io.write.enable) {
+    mem.write(io.write.address, io.write.data)
   }
-  io.rdData := mem.read(io.rdAddr, io.rdEna)
+  io.read.data := mem.read(io.read.address, io.read.enable)
 }
