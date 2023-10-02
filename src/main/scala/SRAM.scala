@@ -21,7 +21,6 @@ package memories
 import chisel3._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import chisel3.util.log2Up
-import os.write
 
 class SRAMRead(depth: Int, width: Int) extends Bundle {
   val enable = Input(Bool())
