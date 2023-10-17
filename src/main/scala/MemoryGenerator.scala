@@ -16,6 +16,8 @@
 package memories
 import org.slf4j.LoggerFactory
 import java.nio.file.{Path, Paths}
+import chisel3._
+import chisel3.experimental.BundleLiterals._
 
 /* Generates memories that are blocked to Block RAMs in FPGA.
  * It also handles placing the files in the correct location.
@@ -37,7 +39,10 @@ object MemoryGenerator {
     def SRAM(depth: Int, width: Int = 32): SRAM = {
         new SRAM(depth, width)
     }
-    
+   
+    def getTieOffBundle(depth: Int, width: Int) = (new SRAMWrite(depth, width)).Lit(_.enable -> false.B, 
+                                                                                    _.address -> 0.U, 
+                                                                                    _.data -> 0.U)
     // Memory from a hexFile
     def SRAMInit(hexFile: String, width: Int = 32): SRAM = {
         if (!os.exists(os.Path(getGenDir().toString()))) {
