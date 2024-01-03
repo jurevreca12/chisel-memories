@@ -58,16 +58,16 @@ object MemoryGenerator {
     }
 
     // Takes a hex string and saves it as a file
-    def SRAMInitFromString(hexStr: String, width: Int = 32): SRAM = {
+    def SRAMInitFromString(hexStr: String, isBinary: Boolean = false, width: Int = 32): SRAM = {
         if (!os.exists(os.Path(getGenDir().toString()))) {
             os.makeDir(os.Path(getGenDir().toString()))
         }
         val depth = hexStr.count(_ == '\n') + 1
-        val fName = s"mem${memoryCounter.get()}.hex"
+        val fName = s"mem${memoryCounter.get()}.${if (isBinary) "bin" else "hex"}"
         val fPath = Paths.get(getGenDir().toString(), fName).toAbsolutePath()
         os.write.over(os.Path(fPath), hexStr)
         logger.debug(s"Generating new memory from string to file $fPath.")
         memoryCounter.set(memoryCounter.get + 1) 
-        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$fName")
+        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$fName", isBinary)
     }
 }

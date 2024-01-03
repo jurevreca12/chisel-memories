@@ -21,6 +21,7 @@ package memories
 import chisel3._
 import chisel3.util.experimental.loadMemoryFromFileInline
 import chisel3.util.log2Up
+import firrtl.annotations.MemoryLoadFileType
 
 class SRAMRead(depth: Int, width: Int) extends Bundle {
   val enable = Input(Bool())
@@ -33,15 +34,16 @@ class SRAMWrite(depth: Int, width: Int) extends Bundle {
   val data =  UInt(width.W)
 }
 
-class SRAM(depth: Int, width: Int = 32, hexFile: String = "") extends Module {  
+class SRAM(depth: Int, width: Int = 32, hexFile: String = "", isBinary: Boolean = false) extends Module {  
   val io = IO(new Bundle {
     val read = new SRAMRead(depth, width)
     val write = Flipped(new SRAMWrite(depth, width))
   })
   
+  val memoryLoadType = if (isBinary) MemoryLoadFileType.Binary else MemoryLoadFileType.Hex 
   val mem = SyncReadMem(depth, UInt(width.W))
   if (hexFile != "") {
-    loadMemoryFromFileInline(mem, hexFile)
+    loadMemoryFromFileInline(mem, hexFile, memoryLoadType)
   }
   // Create one write port and one read port
   when(io.write.enable) {
