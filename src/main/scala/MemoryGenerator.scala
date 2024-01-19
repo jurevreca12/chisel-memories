@@ -36,38 +36,38 @@ object MemoryGenerator {
     def getGenDir() = genDir.get
 
     // Empty memory
-    def SRAM(depth: Int, width: Int = 32): SRAM = {
-        new SRAM(depth, width)
+    def SRAM(depth: Int, width: Int = 32, noWritePort: Boolean = false): SRAM = {
+      new SRAM(depth, width, noWritePort = noWritePort)
     }
    
     def getTieOffBundle(depth: Int, width: Int) = (new SRAMWrite(depth, width)).Lit(_.enable -> false.B, 
                                                                                     _.address -> 0.U, 
                                                                                     _.data -> 0.U)
     // Memory from a hexFile
-    def SRAMInit(hexFile: String, width: Int = 32): SRAM = {
-        if (!os.exists(os.Path(getGenDir().toString()))) {
-            os.makeDir(os.Path(getGenDir().toString()))
-        }
-        val depth = os.read(os.Path(hexFile)).linesIterator.size
-        val newName = s"mem${memoryCounter.get()}.hex"
-        val newPath = Paths.get(getGenDir().toString(), newName).toAbsolutePath()
-        os.copy.over(os.Path(hexFile), os.Path(newPath))
-        logger.debug(s"Generating new memory from $hexFile -> ${getGenDir()}/$newName.")
-        memoryCounter.set(memoryCounter.get + 1) 
-        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$newName")
+    def SRAMInit(hexFile: String, width: Int = 32, noWritePort: Boolean = false): SRAM = {
+      if (!os.exists(os.Path(getGenDir().toString()))) {
+          os.makeDir(os.Path(getGenDir().toString()))
+      }
+      val depth = os.read(os.Path(hexFile)).linesIterator.size
+      val newName = s"mem${memoryCounter.get()}.hex"
+      val newPath = Paths.get(getGenDir().toString(), newName).toAbsolutePath()
+      os.copy.over(os.Path(hexFile), os.Path(newPath))
+      logger.debug(s"Generating new memory from $hexFile -> ${getGenDir()}/$newName.")
+      memoryCounter.set(memoryCounter.get + 1) 
+      new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$newName", noWritePort=noWritePort)
     }
 
     // Takes a hex string and saves it as a file
-    def SRAMInitFromString(hexStr: String, isBinary: Boolean = false, width: Int = 32): SRAM = {
-        if (!os.exists(os.Path(getGenDir().toString()))) {
-            os.makeDir(os.Path(getGenDir().toString()))
-        }
-        val depth = hexStr.count(_ == '\n') + 1
-        val fName = s"mem${memoryCounter.get()}.${if (isBinary) "bin" else "hex"}"
-        val fPath = Paths.get(getGenDir().toString(), fName).toAbsolutePath()
-        os.write.over(os.Path(fPath), hexStr)
-        logger.debug(s"Generating new memory from string to file $fPath.")
-        memoryCounter.set(memoryCounter.get + 1) 
-        new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$fName", isBinary)
+    def SRAMInitFromString(hexStr: String, isBinary: Boolean = false, width: Int = 32, noWritePort: Boolean = false): SRAM = {
+      if (!os.exists(os.Path(getGenDir().toString()))) {
+          os.makeDir(os.Path(getGenDir().toString()))
+      }
+      val depth = hexStr.count(_ == '\n') + 1
+      val fName = s"mem${memoryCounter.get()}.${if (isBinary) "bin" else "hex"}"
+      val fPath = Paths.get(getGenDir().toString(), fName).toAbsolutePath()
+      os.write.over(os.Path(fPath), hexStr)
+      logger.debug(s"Generating new memory from string to file $fPath.")
+      memoryCounter.set(memoryCounter.get + 1) 
+      new SRAM(depth, width, s"${Paths.get(".").toAbsolutePath().relativize(getGenDir()).toString()}/$fName", isBinary, noWritePort)
     }
 }

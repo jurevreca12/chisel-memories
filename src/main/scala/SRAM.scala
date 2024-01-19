@@ -34,10 +34,10 @@ class SRAMWrite(depth: Int, width: Int) extends Bundle {
   val data =  UInt(width.W)
 }
 
-class SRAM(depth: Int, width: Int = 32, hexFile: String = "", isBinary: Boolean = false) extends Module {  
+class SRAM(depth: Int, width: Int = 32, hexFile: String = "", isBinary: Boolean = false, noWritePort: Boolean = false) extends Module {  
   val io = IO(new Bundle {
     val read = new SRAMRead(depth, width)
-    val write = Flipped(new SRAMWrite(depth, width))
+    val write = if (noWritePort) None else Some(Flipped(new SRAMWrite(depth, width)))
   })
   
   val memoryLoadType = if (isBinary) MemoryLoadFileType.Binary else MemoryLoadFileType.Hex 
@@ -46,8 +46,10 @@ class SRAM(depth: Int, width: Int = 32, hexFile: String = "", isBinary: Boolean 
     loadMemoryFromFileInline(mem, hexFile, memoryLoadType)
   }
   // Create one write port and one read port
-  when(io.write.enable) {
-    mem.write(io.write.address, io.write.data)
+  if (!noWritePort) {
+    when(io.write.get.enable) {
+      mem.write(io.write.get.address, io.write.get.data)
+    }
   }
   io.read.data := mem.read(io.read.address, io.read.enable)
 }
