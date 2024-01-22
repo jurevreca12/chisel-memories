@@ -39,7 +39,6 @@ class SRAM(depth: Int, width: Int = 32, hexFile: String = "", isBinary: Boolean 
     val read = new SRAMRead(depth, width)
     val write = if (noWritePort) None else Some(Flipped(new SRAMWrite(depth, width)))
   })
-  
   val memoryLoadType = if (isBinary) MemoryLoadFileType.Binary else MemoryLoadFileType.Hex 
   val mem = SyncReadMem(depth, UInt(width.W))
   if (hexFile != "") {
